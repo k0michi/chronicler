@@ -2,7 +2,11 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as util from 'util';
+import * as childProcess from 'child_process';
 import arg from 'arg';
+
+const execFile = util.promisify(childProcess.execFile);
 
 const args = arg({
   '--suffix': Boolean,
@@ -27,10 +31,21 @@ if (command == 'create') {
   }
 } else if (command == 'backup') {
   const src = args._[1];
-  const [extname, basename] = splitFilename(args._[1]);
-  const dest = createFilename(date, basename, extname, args['--suffix'], args['--time']);
+  const dir = await isDirectory(src);
 
-  await fs.copyFile(src, dest);
+  if (dir) {
+    const dest = createFilename(date, src, '.tar', args['--suffix'], args['--time']);
+    await execFile('tar', ['-cf', dest, src]);
+  } else {
+    const [extname, basename] = splitFilename(args._[1]);
+    const dest = createFilename(date, basename, extname, args['--suffix'], args['--time']);
+    await fs.copyFile(src, dest);
+  }
+}
+
+async function isDirectory(path) {
+  const stats = await fs.stat(path);
+  return stats.isDirectory();
 }
 
 function splitFilename(name) {
