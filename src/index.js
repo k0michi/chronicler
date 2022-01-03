@@ -12,7 +12,11 @@ const args = arg({
   '--suffix': Boolean,
   '-s': '--suffix',
   '--time': Boolean,
-  '-t': '--time'
+  '-t': '--time',
+  '--gzip': Boolean,
+  '--bzip2': Boolean,
+  '--xz': Boolean,
+  '--zstd': Boolean
 });
 
 const date = new Date();
@@ -30,16 +34,66 @@ if (command == 'create') {
     console.log(`File ${filename} was created.`);
   }
 } else if (command == 'archive') {
+  const compressExt = getCompressExt();
   const src = args._[1];
   const dir = await isDirectory(src);
 
   if (dir) {
-    const dest = createFilename(date, src, '.tar', args['--suffix'], args['--time']);
-    await execFile('tar', ['-cf', dest, src]);
+    let dest = createFilename(date, src, '.tar', args['--suffix'], args['--time']);
+
+    if (compressExt != null) {
+      const compressOption = getCompressOption();
+      await execFile('tar', [compressOption, '-cf', dest + compressExt, src]);
+    } else {
+      await execFile('tar', ['-cf', dest, src]);
+    }
   } else {
     const [extname, basename] = splitFilename(args._[1]);
-    const dest = createFilename(date, basename, extname, args['--suffix'], args['--time']);
-    await fs.copyFile(src, dest);
+    let dest = createFilename(date, basename, extname, args['--suffix'], args['--time']);
+
+    if (compressExt != null) {
+      const compressCommand = getCompressCommand();
+      await execFile(compressCommand, ['-k', src]);
+      await fs.rename(src + compressExt, dest + compressExt);
+    } else {
+      await fs.copyFile(src, dest);
+    }
+  }
+}
+
+function getCompressOption() {
+  if (args['--gzip']) {
+    return '--gzip';
+  } else if (args['--bzip2']) {
+    return '--bzip2';
+  } else if (args['--xz']) {
+    return '--xz';
+  } else if (args['--zstd']) {
+    return '--zstd';
+  }
+}
+
+function getCompressExt() {
+  if (args['--gzip']) {
+    return '.gz';
+  } else if (args['--bzip2']) {
+    return '.bz2';
+  } else if (args['--xz']) {
+    return '.xz';
+  } else if (args['--zstd']) {
+    return '.zst';
+  }
+}
+
+function getCompressCommand() {
+  if (args['--gzip']) {
+    return 'gzip';
+  } else if (args['--bzip2']) {
+    return 'bzip2';
+  } else if (args['--xz']) {
+    return 'xz';
+  } else if (args['--zstd']) {
+    return 'zstd';
   }
 }
 
