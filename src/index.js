@@ -15,7 +15,7 @@ const date = new Date();
 const command = args._[0];
 
 if (command == 'create') {
-  const [extname, basename] = splitFilename(args._[1]);
+  const [extname, basename] = splitFilename(args._[1] ?? '');
   const filename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
 
   try {
@@ -34,6 +34,10 @@ if (command == 'create') {
 }
 
 function splitFilename(name) {
+  if (name.startsWith('.')) {
+    return [name, ''];
+  }
+
   const extname = path.extname(name);
   const basename = path.basename(name, extname);
   return [extname, basename];
