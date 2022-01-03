@@ -25,6 +25,12 @@ if (command == 'create') {
     await fs.open(filename, 'a');
     console.log(`File ${filename} was created.`);
   }
+} else if (command == 'backup') {
+  const src = args._[1];
+  const [extname, basename] = splitFilename(args._[1]);
+  const dest = createFilename(date, basename, extname, args['--suffix'], args['--time']);
+
+  await fs.copyFile(src, dest);
 }
 
 function splitFilename(name) {
