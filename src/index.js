@@ -29,7 +29,7 @@ if (command == 'create') {
     await fs.open(filename, 'a');
     console.log(`File ${filename} was created.`);
   }
-} else if (command == 'backup') {
+} else if (command == 'archive') {
   const src = args._[1];
   const dir = await isDirectory(src);
 
