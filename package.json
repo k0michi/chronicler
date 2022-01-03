@@ -1,0 +1,10 @@
+{
+  "name": "@k0michi/chronicler",
+  "type": "module",
+  "dependencies": {
+    "arg": "^5.0.1"
+  },
+  "bin": {
+    "chcl": "./src/index.js"
+  }
+}
