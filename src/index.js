@@ -7,6 +7,8 @@ import arg from 'arg';
 const args = arg({
   '--suffix': Boolean,
   '-s': '--suffix',
+  '--time': Boolean,
+  '-t': '--time'
 });
 
 const date = new Date();
@@ -14,7 +16,7 @@ const command = args._[0];
 
 if (command == 'create') {
   const [extname, basename] = splitFilename(args._[1]);
-  const filename = createFilename(date, basename, extname, args['--suffix']);
+  const filename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
 
   try {
     await fs.open(filename, 'r');
@@ -35,9 +37,14 @@ function padZero(string, length) {
   return string.padStart(length, '0');
 }
 
-function createFilename(date, name, extension, isSuffix) {
-  const dateString = `${padZero(date.getFullYear().toString(), 4)}-${padZero((date.getMonth() + 1).toString(), 2)}-${padZero(date.getDate().toString(), 2)}`;
-  let filename = ''
+function createFilename(date, name, extension, isSuffix, appendTime) {
+  let dateString = `${padZero(date.getFullYear().toString(), 4)}-${padZero((date.getMonth() + 1).toString(), 2)}-${padZero(date.getDate().toString(), 2)}`;
+
+  if (appendTime) {
+    dateString += `_${padZero(date.getHours().toString(), 2)}.${padZero(date.getMinutes().toString(), 2)}.${padZero(date.getSeconds().toString(), 2)}`;
+  }
+
+  let filename = '';
 
   if (name.length > 0) {
     if (isSuffix) {
