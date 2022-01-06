@@ -22,6 +22,8 @@ const args = arg({
 const date = new Date();
 const command = args._[0];
 
+const dateExp = /_?(\d{4})-(\d{2})-(\d{2})(_(\d{2})\.(\d{2})\.(\d{2}))?_?/g;
+
 if (command == 'create') {
   const [extname, basename] = splitFilename(args._[1] ?? '');
   const filename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
@@ -32,6 +34,18 @@ if (command == 'create') {
   } catch (e) {
     await fs.open(filename, 'a');
     console.log(`File ${filename} was created.`);
+  }
+} else if (command == 'touch') {
+  const oldFilename = args._[1];
+  const dateRes = dateExp.exec(oldFilename);
+
+  if (dateRes != null) {
+    const start = dateRes.index;
+    const end = dateRes.index + dateRes[0].length;
+    const originalName = oldFilename.substring(0, start) + oldFilename.substring(end);
+    const [extname, basename] = splitFilename(originalName);
+    const newFilename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
+    await fs.rename(oldFilename, newFilename);
   }
 } else if (command == 'archive') {
   const compressExt = getCompressExt();
@@ -116,11 +130,19 @@ function padZero(string, length) {
   return string.padStart(length, '0');
 }
 
+function dateToString(date) {
+  return `${padZero(date.getFullYear().toString(), 4)}-${padZero((date.getMonth() + 1).toString(), 2)}-${padZero(date.getDate().toString(), 2)}`;
+}
+
+function timeToString(date) {
+  return `${padZero(date.getHours().toString(), 2)}.${padZero(date.getMinutes().toString(), 2)}.${padZero(date.getSeconds().toString(), 2)}`;
+}
+
 function createFilename(date, name, extension, isSuffix, appendTime) {
-  let dateString = `${padZero(date.getFullYear().toString(), 4)}-${padZero((date.getMonth() + 1).toString(), 2)}-${padZero(date.getDate().toString(), 2)}`;
+  let dateString = dateToString(date);
 
   if (appendTime) {
-    dateString += `_${padZero(date.getHours().toString(), 2)}.${padZero(date.getMinutes().toString(), 2)}.${padZero(date.getSeconds().toString(), 2)}`;
+    dateString += '_' + timeToString(date);
   }
 
   let filename = '';
