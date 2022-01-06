@@ -33,7 +33,7 @@ if (command == 'create') {
     console.log(`File ${filename} already exists.`);
   } catch (e) {
     await fs.open(filename, 'a');
-    console.log(`File ${filename} was created.`);
+    console.log(`File ${filename} has been created.`);
   }
 } else if (command == 'touch') {
   const oldFilename = args._[1];
@@ -46,6 +46,7 @@ if (command == 'create') {
     const [extname, basename] = splitFilename(originalName);
     const newFilename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
     await fs.rename(oldFilename, newFilename);
+    console.log(`File ${oldFilename} has been renamed ${newFilename}.`);
   }
 } else if (command == 'archive') {
   const compressExt = getCompressExt();
@@ -58,8 +59,10 @@ if (command == 'create') {
     if (compressExt != null) {
       const compressOption = getCompressOption();
       await execFile('tar', [compressOption, '-cf', dest + compressExt, src]);
+      console.log(`Archive ${dest + compressExt} has been created.`);
     } else {
       await execFile('tar', ['-cf', dest, src]);
+      console.log(`Archive ${dest} has been created.`);
     }
   } else {
     const [extname, basename] = splitFilename(args._[1]);
@@ -69,8 +72,10 @@ if (command == 'create') {
       const compressCommand = getCompressCommand();
       await execFile(compressCommand, ['-k', src]);
       await fs.rename(src + compressExt, dest + compressExt);
+      console.log(`Archive ${dest + compressExt} has been created.`);
     } else {
       await fs.copyFile(src, dest);
+      console.log(`Archive ${dest} has been created.`);
     }
   }
 }
