@@ -47,6 +47,11 @@ if (command == 'create') {
     const newFilename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
     await fs.rename(oldFilename, newFilename);
     console.log(`File ${oldFilename} has been renamed ${newFilename}.`);
+  } else {
+    const [extname, basename] = splitFilename(oldFilename);
+    const newFilename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
+    await fs.rename(oldFilename, newFilename);
+    console.log(`File ${oldFilename} has been renamed ${newFilename}.`);
   }
 } else if (command == 'archive') {
   const compressExt = getCompressExt();
