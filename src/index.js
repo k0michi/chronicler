@@ -28,12 +28,16 @@ if (command == 'create') {
   const [extname, basename] = splitFilename(args._[1] ?? '');
   const filename = createFilename(date, basename, extname, args['--suffix'], args['--time']);
 
-  try {
-    await fs.open(filename, 'r');
-    console.log(`File ${filename} already exists.`);
-  } catch (e) {
+  if (!(await checkExistence(filename))) {
     await fs.open(filename, 'a');
     console.log(`File ${filename} has been created.`);
+  }
+} else if (command == 'createdir') {
+  const dirName = createFilename(date, args._[1], '', args['--suffix'], args['--time']);
+
+  if (!(await checkExistence(dirName))) {
+    await fs.mkdir(dirName);
+    console.log(`Directory ${dirName} has been created.`);
   }
 } else if (command == 'touch') {
   const oldFilename = args._[1];
@@ -82,6 +86,22 @@ if (command == 'create') {
       await fs.copyFile(src, dest);
       console.log(`Archive ${dest} has been created.`);
     }
+  }
+}
+
+async function checkExistence(entPath) {
+  try {
+    const stat = await fs.stat(entPath);
+
+    if (stat.isDirectory()) {
+      console.log(`Directory ${entPath} already exists.`);
+    } else if (stat.isFile()) {
+      console.log(`File ${entPath} already exists.`);
+    }
+
+    return true;
+  } catch (e) {
+    return false;
   }
 }
 
